@@ -1,13 +1,15 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import io from 'socket.io-client'
 
 export default function StudentChatPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [messages, setMessages] = useState<any[]>([])
   const [content, setContent] = useState('')
+  const socket = useRef<any>(null)
   const recipient = 'tutor@test.com'
 
   useEffect(() => {
@@ -16,25 +18,35 @@ export default function StudentChatPage() {
     if (session.user?.role !== 'student') return router.push('/')
   }, [session, status])
 
-  const loadMessages = async () => {
-    const res = await fetch(`/api/messages?recipient=${recipient}`)
-    const data = await res.json()
-    setMessages(data)
-  }
+  useEffect(() => {
+    socket.current = io()
+   socket.current.on('message:new', (msg: { content: string; sender: string }) => {
+  setMessages((prev) => [...prev, msg])
+})
+
+    return () => socket.current?.disconnect()
+  }, [])
 
   useEffect(() => {
+    const loadMessages = async () => {
+      const res = await fetch(`/api/messages?recipient=${recipient}`)
+      const data = await res.json()
+      setMessages(data)
+    }
     loadMessages()
   }, [])
 
   const sendMessage = async () => {
     if (!content.trim()) return
-    await fetch('/api/messages', {
+    const res = await fetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ recipient, content }),
     })
+    const newMsg = await res.json()
+    socket.current?.emit('message:send', newMsg)
+    setMessages((prev) => [...prev, newMsg])
     setContent('')
-    loadMessages()
   }
 
   return (
