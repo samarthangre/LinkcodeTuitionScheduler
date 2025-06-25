@@ -1,67 +1,63 @@
 'use client'
 
+import { useSearchParams, useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+ const role = searchParams?.get('role') || ''
+
+// student, tutor, admin
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+  const handleLogin = async () => {
     const res = await signIn('credentials', {
+      redirect: false,
       email,
       password,
-      redirect: false,
     })
 
-    if (res?.error) {
-      setError('Invalid credentials')
-    } else {
-      // fetch session to get role
-      const sessionRes = await fetch('/api/auth/session')
-      const session = await sessionRes.json()
-      const role = session?.user?.role
-
-      if (role === 'admin') router.push('/admin')
+    if (res?.ok) {
+      if (role === 'student') router.push('/student')
       else if (role === 'tutor') router.push('/tutor')
-      else router.push('/student')
+      else if (role === 'admin') router.push('/admin')
+      else router.push('/')
+    } else {
+      alert('❌ Invalid credentials')
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-6 rounded shadow-md w-full max-w-sm"
-      >
-        <h1 className="text-xl font-semibold mb-4">Login</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white shadow-md p-8 rounded w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6 capitalize text-center">
+          Login as {role || 'user'}
+        </h1>
         <input
           type="email"
           placeholder="Email"
-          className="w-full border p-2 mb-3 rounded"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 border mb-4 rounded"
         />
         <input
           type="password"
           placeholder="Password"
-          className="w-full border p-2 mb-3 rounded"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 border mb-6 rounded"
         />
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
         <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          onClick={handleLogin}
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
         >
-          Sign In
+          Login
         </button>
-      </form>
+      </div>
     </div>
   )
 }
