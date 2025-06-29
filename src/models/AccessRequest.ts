@@ -1,10 +1,13 @@
-import mongoose from 'mongoose'
+import mongoose, { Schema, models, model } from 'mongoose'
 
-const AccessRequestSchema = new mongoose.Schema({
-  student: { type: String, required: true }, // email
-  schedule: { type: String, required: true }, // generated schedule summary
-  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-})
+const accessRequestSchema = new Schema(
+  {
+    student: { type: String, required: true },
+    schedule: { type: String, required: true },
+    status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  },
+  { timestamps: true }
+)
 
-export default mongoose.models.AccessRequest ||
-  mongoose.model('AccessRequest', AccessRequestSchema)
+const AccessRequest = models.AccessRequest || model('AccessRequest', accessRequestSchema)
+export default AccessRequest

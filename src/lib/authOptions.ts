@@ -1,4 +1,4 @@
-// src/lib/authOptions.ts
+// src/lib/auth.ts
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { NextAuthOptions } from 'next-auth'
 
@@ -31,7 +31,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) token.role = (user as any).role
+      if (user) token.role = user.role
       return token
     },
     async session({ session, token }) {
