@@ -1,11 +1,8 @@
-import mongoose from 'mongoose'
+import mongoose, { Schema, model, models } from 'mongoose'
 
-const LectureSchema = new mongoose.Schema({
-  title: String,
-  tutor: String,
-  date: String,
-  time: String,
-  student: String,
+const LectureSchema = new Schema({
+  title: { type: String, required: true },
+  description: { type: String, required: true },
 })
 
-export default mongoose.models.Lecture || mongoose.model('Lecture', LectureSchema)
+export default models.Lecture || model('Lecture', LectureSchema)

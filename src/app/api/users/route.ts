@@ -1,9 +1,9 @@
-// src/app/api/users/route.ts
+import { NextResponse } from 'next/server'
+import dbConnect from '@/lib/db'
+import User from '@/models/User'
+
 export async function GET() {
-  const users = [
-    { email: 'admin@test.com', role: 'admin' },
-    { email: 'student@test.com', role: 'student' },
-    { email: 'tutor@test.com', role: 'tutor' },
-  ]
-  return Response.json(users)
+  await dbConnect()
+  const users = await User.find()
+  return NextResponse.json(users)
 }

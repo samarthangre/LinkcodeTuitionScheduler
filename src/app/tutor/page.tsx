@@ -1,22 +1,21 @@
 'use client'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
 
-export default function TutorPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Users } from 'lucide-react'
 
-  useEffect(() => {
-    if (status === 'loading') return
-    if (!session) return router.push('/login')
-    if (session.user?.role !== 'tutor') return router.push('/')
-  }, [session, status])
-
+export default function TutorDashboard() {
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold">📘 Tutor Dashboard</h1>
-      <p className="mt-2 text-gray-600">Welcome, {session?.user?.email}</p>
+      <h1 className="text-2xl font-bold mb-4">Tutor Dashboard</h1>
+
+      <Link href="/tutor/chat">
+        <Button className="mb-4">
+          <Users className="mr-2 h-4 w-4" /> Chat with Students
+        </Button>
+      </Link>
+
+      <p>Welcome, tutor! You can chat with students or manage your lectures.</p>
     </div>
   )
 }

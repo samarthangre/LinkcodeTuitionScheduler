@@ -1,65 +1,59 @@
-// ✅ /src/app/student/page.tsx
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
-import { Button } from '@/components/ui/button'
 import axios from 'axios'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { BadgeCheck, Loader2 } from 'lucide-react'
 
-interface AccessRequest {
+interface Request {
   _id: string
-  student: string
-  studentEmail: string
   schedule: string
-  status: string
+  status: 'pending' | 'approved' | 'rejected'
 }
 
 export default function StudentDashboard() {
-  const [approved, setApproved] = useState<AccessRequest[]>([])
-  const { data: session } = useSession()
-  const router = useRouter()
+  const [requests, setRequests] = useState<Request[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchSchedules = async () => {
       try {
         const res = await axios.get('/api/access-requests')
-        console.log('API response:', res.data) // ✅ DEBUG
-        const approved = res.data.requests.filter(
-          (req: AccessRequest) =>
-            req.status === 'approved' &&
-            (req.studentEmail === session?.user?.email ||
-             req.student === session?.user?.email)
-        )
-        setApproved(approved)
-      } catch (err) {
-        console.error('Failed to fetch schedules:', err)
+        setRequests(res.data.requests.filter((r: Request) => r.status === 'approved'))
+      } catch (error) {
+        console.error('Failed to fetch schedules:', error)
+      } finally {
+        setLoading(false)
       }
     }
 
     fetchSchedules()
-  }, [session])
+  }, [])
 
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Student Dashboard</h1>
 
-      <Button onClick={() => router.push('/student/chat')} className="mb-6">
-        Go to Chat
-      </Button>
+      <Link href="/student/chat">
+        <Button className="mb-4">💬 Go to Chat</Button>
+      </Link>
 
-      <h2 className="text-xl font-semibold mb-2">Approved Lectures</h2>
+      <h2 className="text-xl font-semibold mt-6 mb-2">Approved Schedules</h2>
 
-      {approved.length > 0 ? (
-        <ul className="list-disc pl-5 space-y-2">
-          {approved.map((req) => (
-            <li key={req._id} className="bg-gray-100 p-3 rounded">
-              <pre className="whitespace-pre-wrap">{req.schedule}</pre>
-            </li>
-          ))}
-        </ul>
+      {loading ? (
+        <Loader2 className="animate-spin" />
+      ) : requests.length > 0 ? (
+        requests.map(request => (
+          <div key={request._id} className="bg-green-50 border border-green-300 p-4 rounded shadow mb-3">
+            <p className="flex items-center gap-1 text-green-700 font-medium">
+              <BadgeCheck size={18} /> Approved Schedule
+            </p>
+            <pre className="whitespace-pre-wrap text-sm mt-2">{request.schedule}</pre>
+          </div>
+        ))
       ) : (
-        <p>No approved lectures yet.</p>
+        <p>No approved schedules yet.</p>
       )}
     </div>
   )
